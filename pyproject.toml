@@ -1,0 +1,35 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "ucos-marketplace"
+version = "0.1.0"
+description = "Universal Marketplace Platform — constitutional, knowledge-driven, configuration-first commerce foundation (UCOS Omega)"
+requires-python = ">=3.11"
+dependencies = []
+
+[project.optional-dependencies]
+dev = ["pytest>=8"]
+
+[tool.setuptools.packages.find]
+include = ["marketplace*"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = ["test_*.py"]
+addopts = "-ra -q --strict-markers"
+markers = [
+    "unit: isolated unit tests",
+    "invariant: cross-domain invariant enforcement tests",
+    "state: state-machine transition tests",
+    "concurrency: race-condition and idempotency tests",
+    "security: authorization, isolation and abuse tests",
+    "integration: multi-universe integration tests",
+    "e2e: end-to-end critical-flow acceptance tests",
+    "registry: canonical registry and traceability tests",
+]
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
