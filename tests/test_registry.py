@@ -93,7 +93,7 @@ class TestRequirementRegistry:
         # Non-vacuous: a registry that registered nothing would also have no
         # untraced requirements, so assert the population is real first.
         implemented = [r for r in REQUIREMENTS.all() if r.status == "implemented"]
-        assert len(implemented) >= 46, (
+        assert len(implemented) >= 50, (
             "the FDVI requirement population must be registered before this "
             "assertion means anything"
         )
@@ -103,13 +103,34 @@ class TestRequirementRegistry:
             f"tests: {[r.requirement_id for r in untraced]}"
         )
 
-    def test_known_gaps_are_declared_not_hidden(self):
-        """Requirements not yet built are marked, so the gap is visible (GOV-06)."""
-        gaps = REQUIREMENTS.gaps()
-        assert gaps, "at least one FDVI requirement is honestly not yet implemented"
-        for gap in gaps:
-            assert gap.status != "implemented"
-            assert not gap.implemented
+    def test_no_requirement_is_in_a_hidden_state(self):
+        """Every requirement is implemented-and-traced or an declared gap (GOV-06).
+
+        A requirement may not sit in an unaccounted third state, such as
+        ``implemented`` with no test trace, or an unrecognised status: that is
+        how an unfinished requirement hides. This holds whether or not any gap
+        currently exists.
+        """
+        all_reqs = list(REQUIREMENTS.all())
+        assert all_reqs, "the requirement population must be registered first"
+        recognised = set()
+        for requirement in all_reqs:
+            assert requirement.status in {"implemented", "not_implemented"}, (
+                f"{requirement.requirement_id} has unrecognised status "
+                f"{requirement.status!r}"
+            )
+            if requirement.status == "implemented":
+                assert requirement.trace_complete(), (
+                    f"{requirement.requirement_id} claims 'implemented' but "
+                    "traces to no capability or test"
+                )
+            else:
+                assert requirement.gap, requirement.requirement_id
+            recognised.add(requirement.status)
+        # The gap view and the status field must agree exactly.
+        assert {r.requirement_id for r in REQUIREMENTS.gaps()} == {
+            r.requirement_id for r in all_reqs if r.status == "not_implemented"
+        }
 
     def test_get_unknown_requirement(self):
         with pytest.raises(NotFoundError):
@@ -149,7 +170,7 @@ class TestCapabilityRegistry:
         from marketplace.universes.u12_intelligence.traceability import DOMAIN
 
         fdvi = [c for c in CAPABILITIES.all() if c.domain == DOMAIN]
-        assert len(fdvi) >= 7
+        assert len(fdvi) == 10
         for capability in fdvi:
             assert capability.owner_universe == "U12"
             assert capability.implementing_module.startswith("marketplace.")

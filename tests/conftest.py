@@ -20,6 +20,9 @@ import marketplace.universes.u12_intelligence.constraints  # noqa: F401
 import marketplace.universes.u12_intelligence.entities  # noqa: F401
 import marketplace.universes.u12_intelligence.evaluation  # noqa: F401
 import marketplace.universes.u12_intelligence.governance  # noqa: F401
+import marketplace.universes.u12_intelligence.monitoring  # noqa: F401
+import marketplace.universes.u12_intelligence.review  # noqa: F401
+import marketplace.universes.u12_intelligence.scenarios  # noqa: F401
 import marketplace.universes.u12_intelligence.traceability  # noqa: F401
 
 from marketplace.kernel import AuthorizationContext
@@ -44,6 +47,9 @@ def authz():
                 "decision.approver",
                 "decision.reviewer",
                 "decision.service",
+                "scenario.writer",
+                "observability.writer",
+                "observability.reader",
                 "execution.service",
                 "model.governance",
                 "consent.admin",

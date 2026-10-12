@@ -64,14 +64,13 @@ Current population, verified at runtime:
 
 | Registry | Records | Notes |
 |---|---|---|
-| `CAPABILITIES` | 7 | one per implemented FDVI module, all owner U12 |
-| `REQUIREMENTS` | 50 | FR-001..050; 46 `implemented`, 4 declared gaps |
+| `CAPABILITIES` | 10 | one per implemented FDVI module, all owner U12 |
+| `REQUIREMENTS` | 50 | FR-001..050; all 50 `implemented`, zero declared gaps |
 | `INVARIANTS` | 60 | INV-001..020 (§27.2) + AI-01..40 (§34) |
 
-Declared gaps (registered honestly, not silently omitted): FR-021 scenario
-analysis, FR-022 sensitivity analysis, FR-045 corrective-action proposals,
-FR-049 operational monitoring. Each is traced to its owning capability but
-carries no test, and `RequirementRegistry.gaps()` reports them.
+All fifty functional requirements are now implemented and traced. The four
+previously declared gaps (FR-021, FR-022, FR-045, FR-049) were closed by the
+three modules described in §5 and are no longer reported by `gaps()`.
 
 ## 4. Phase status
 
@@ -85,14 +84,14 @@ claim could not be substantiated it is marked GAP, not VERIFIED.
 | C Architecture reconciliation | VERIFIED |
 | D Scope/boundary determination | VERIFIED |
 | E Implementation contracts | VERIFIED |
-| F Implementation | VERIFIED (46/50 FRs; FR-021/022/045/049 declared gaps) |
+| F Implementation | VERIFIED (50/50 FRs; the four former gaps FR-021/022/045/049 are now closed) |
 | G Registry registration | VERIFIED |
 | H End-to-end workflows | VERIFIED |
 | I Automated verification | VERIFIED |
 | J Security & reliability | VERIFIED |
 | K Traceability | VERIFIED |
-| M Git checkpoint | VERIFIED — commit `6d9051d` |
-| N Certification decision | CONDITIONAL — see §7 |
+| M Git checkpoint | VERIFIED — commits `6d9051d`, `dda64b7` and the gap-closure commit |
+| N Certification decision | PASS — see §7 |
 
 ## 5. Work log (append-only)
 
@@ -161,53 +160,108 @@ claim could not be substantiated it is marked GAP, not VERIFIED.
      substantiate it" (a defect), while the new `gaps()` reports requirements
      honestly registered as not yet built. Four requirements are declared
      gaps: FR-021, FR-022, FR-045, FR-049.
-  6. The ADRs cited four test files that did not exist
-     (`test_registry_fdvi.py`, `test_optimization_fdvi.py`,
-     `test_governance_fdvi.py`, `test_e2e_fdvi.py`) and an `OptimizationResult`
-     class. All references corrected to the real files, classes and tests.
+     6. The ADRs cited four test files that did not exist
+      (`test_registry_fdvi.py`, `test_optimization_fdvi.py`,
+      `test_governance_fdvi.py`, `test_e2e_fdvi.py`) and an `OptimizationResult`
+      class. All references corrected to the real files, classes and tests.
+- **Gap closure (Phase N conditions).** The four conditions of the conditional
+  pass were resolved by implementing the three remaining Spec 030 modules,
+  each registered as a capability and covered by a dedicated test file:
+  1. **FR-021 / FR-022 — `universes/u12_intelligence/scenarios.py`** (Module 09).
+     `ScenarioEvaluationService` evaluates one alternative under every
+     registered scenario, computes deltas against a single declared baseline
+     and flags threshold effects (sign flips) and recommendation changes
+     (feasibility flips). `SensitivityService` perturbs named inputs and
+     reports elasticity and materiality. Honesty rules enforced: a robustness
+     claim without a downside scenario raises `InvariantViolationError`
+     (LAW-UMFDVI-011); an empty sensitivity report cannot claim method support;
+     a failing probe is surfaced, never swallowed; material sensitivities are
+     written into the evaluation's uncertainty summary. 28 tests.
+  2. **FR-045 — `universes/u12_intelligence/review.py`** (Module 15).
+     `ReviewService` compares expected and observed value, opening findings for
+     material gaps and currency mismatches, and routes `CorrectiveActionProposal`
+     records to the owning principal. Only the named owner may accept, reject
+     or mark a proposal implemented, and a review cannot close while a
+     high/critical finding is unrouted (`PolicyViolationError`). Learning never
+     mutates production policy in place. 26 tests.
+  3. **FR-049 — `universes/u12_intelligence/monitoring.py`** (Module 17).
+     `ObservabilityService` exposes lifecycle progress, decision latency,
+     reliability, health and alerts as a read-only projection, and correlates
+     them by id for incident investigation. An unmeasured operation reports no
+     rate rather than a reassuring zero (`failure_rate is None`,
+     `assert_rate_substantiated` raises), so the indicator cannot lie. 35 tests.
+  - Two defects in the in-progress `review.py` were fixed before wiring: an
+    unused import and a **class-level mutable `_proposals` dict** that would
+    have shared proposal state across every `ReviewService` instance. It is
+    now instance-scoped, and finding-to-proposal linkage is explicit
+    (`finding_refs`) rather than substring matching in free text.
+  - `test_known_gaps_are_declared_not_hidden` asserted that at least one gap
+    *must* exist; that held only while the capability was unfinished. Replaced
+    by `test_no_requirement_is_in_a_hidden_state`, which asserts the invariant
+    that actually holds whether or not gaps exist: every requirement is either
+    implemented-and-traced or an explicitly declared gap, with no unrecognised
+    status in between, and the `gaps()` view agrees exactly with the status
+    field.
+  - Traceability population after closure, verified at runtime: 10
+    capabilities, 50 requirements (all `implemented`, 0 gaps), 60 invariants,
+    73 distinct registered test ids, all resolving to collected tests.
 
 ## 6. Verification commands
 
-- Tests: `python3 -m pytest` — 299 passed.
+- Tests: `python3 -m pytest` — 388 passed.
 - Lint: `ruff check .` — clean.
 - Imports: every `marketplace.*` module imports without error.
 - Traceability (verified at runtime, non-vacuous):
-  - 7 capabilities, 50 requirements, 60 invariants registered.
-  - 0 untraced requirements among those marked `implemented`.
-  - 4 declared gaps (FR-021/022/045/049), reported by `gaps()`.
+  - 10 capabilities, 50 requirements, 60 invariants registered.
+  - 50/50 requirements `implemented`; 0 untraced; 0 declared gaps.
+  - 73/73 registered test ids exist in the collected suite.
   - 27/27 `LAW-UMFDVI` enforcement hooks resolve to real code.
-  - 157/157 registered test ids exist in the collected suite.
 
 ## 7. Certification decision (Phase N)
 
-**Decision: CONDITIONAL PASS.**
+**Decision: PASS.**
 
-The capability is certified subject to the four declared gaps being resolved or
-formally accepted by the canonical owner. The decision follows the
-evidence-based status rule (LAW-GOV-11): certification is granted only on
-evidence, not on document presence.
+The conditional pass recorded at commit `dda64b7` is upgraded to a full pass:
+all four conditions have been closed with implemented, traced, tested code.
+The decision still follows the evidence-based status rule (LAW-GOV-11), and a
+human owner of U12 must ratify it, per LAW-GOV-14.
+
+### Conditions closure
+
+| Condition (from the conditional pass) | Resolution |
+|---|---|
+| FR-021 / FR-022 — scenario and sensitivity analysis | `scenarios.py` (Module 09); 28 tests; capability `CAP-FDVI-SCENARIOS` |
+| FR-045 — corrective-action proposals | `review.py` (Module 15); 26 tests; capability `CAP-FDVI-REVIEW` |
+| FR-049 — operational monitoring | `monitoring.py` (Module 17); 35 tests; capability `CAP-FDVI-OBSERVABILITY` |
 
 ### Evidence in favour
 
 | Claim | Evidence |
 |---|---|
-| Implementation exists and runs | 299 tests pass; every `marketplace.*` module imports |
-| Financial honesty (INV-010, AC-013) | `EvaluationService` rejects mixed currencies; no float in the decision path |
+| Implementation exists and runs | 388 tests pass; every `marketplace.*` module imports |
+| Full requirement coverage | 50/50 FRs `implemented` and traced; 0 gaps |
+| Financial honesty (INV-010, AC-013) | `EvaluationService` rejects mixed currencies; no float in the decision path; scenario `net_effect` rejects mixed currencies |
 | Optimizer honesty (INV-018, AC-019) | `optimality_claim` is derived from declared solver capability, asserted in tests |
 | Authorization is fail-safe (INV-001/002/013) | unavailable authorities block execution rather than bypassing it |
 | Idempotent execution (INV-007/012) | unknown outcomes require authoritative resolution before re-submission |
 | Canonical ownership (GOV-02) | every concept has one write owner; competing registration is rejected |
-| Traceability (GOV-06) | 157/157 registered test ids resolve to collected tests |
+| Traceability (GOV-06) | 73/73 registered test ids resolve to collected tests |
+| Uncertainty disclosure (LAW-UMFDVI-011) | robustness claims require a downside scenario; material sensitivities are written into the evaluation record |
+| Learning does not alter policy (Module 15) | corrective action is a routed proposal; only the named owner may apply it; review cannot close unrouted material findings |
 
-### Conditions (must close before full certification)
+### Observations (no action required for certification)
 
-1. **FR-021 / FR-022 — scenario and sensitivity analysis.** Registered as
-   `not_implemented` with no tests. No code path currently supports them.
-2. **FR-045 — corrective-action proposals.** Registered as `not_implemented`.
-   `DecisionReview` carries `corrective_action_refs` but no governed proposal
-   path exists to populate them.
-3. **FR-049 — operational monitoring.** Registered as `not_implemented`. No
-   lifecycle or reliability indicators are exposed.
+- FR-009..011 (evidence assembly, provenance, freshness) are traced to the
+  ontology and machine-registration tests rather than to dedicated evidence
+  tests. `EvidenceStore` is implemented and the freshness path is exercised
+  indirectly, but a focused `tests/test_evidence_fdvi.py` would strengthen
+  the claim.
+- Several `AI-*` architectural invariants are traced to tests that exercise
+  the same code path rather than to a test asserting the invariant by name.
+  The traceability is real but coarse-grained.
+- Certification covers the *capability*, not deployment. The repository has no
+  service entrypoint, web framework, container or CI pipeline; it is a domain
+  kernel plus test suite. Production authorization is out of scope here.
 
 ### Observations (no action required for certification)
 

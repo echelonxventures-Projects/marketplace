@@ -117,8 +117,49 @@ _CAPS: tuple[CapabilityRecord, ...] = (
         owner_universe="U12",
         implementing_module="marketplace.universes.u12_intelligence.entities",
         disposition="implement",
-        requirement_ids=["FR-001", "FR-002", "FR-003", "FR-012", "FR-027", "FR-029", "FR-032", "FR-038", "FR-039", "FR-040", "FR-041", "FR-042", "FR-043", "FR-044", "FR-045", "FR-048"],
+        requirement_ids=["FR-001", "FR-002", "FR-003", "FR-012", "FR-027", "FR-029", "FR-032", "FR-038", "FR-039", "FR-040", "FR-041", "FR-042", "FR-048"],
         law_ids=["LAW-UMFDVI-003", "LAW-UMFDVI-016", "LAW-UMFDVI-018", "LAW-UMFDVI-019", "LAW-UMFDVI-024", "LAW-UMFDVI-026", "LAW-UMFDVI-034", "LAW-UMFDVI-035"],
+    ),
+    CapabilityRecord(
+        capability_id="CAP-FDVI-SCENARIOS",
+        domain=DOMAIN,
+        name="Scenario and sensitivity evaluation",
+        purpose="Evaluate alternatives under named assumption sets (scenarios), "
+                "compare them against a declared baseline and measure sensitivity "
+                "to material inputs, without promoting a scenario-specific "
+                "outcome to a canonical result.",
+        owner_universe="U12",
+        implementing_module="marketplace.universes.u12_intelligence.scenarios",
+        disposition="implement",
+        requirement_ids=["FR-021", "FR-022"],
+        law_ids=["LAW-UMFDVI-011", "LAW-UMFDVI-018"],
+    ),
+    CapabilityRecord(
+        capability_id="CAP-FDVI-REVIEW",
+        domain=DOMAIN,
+        name="Review and corrective action",
+        purpose="Compare expected and observed outcomes, identify decision "
+                "errors, drift and failed assumptions, and route governed "
+                "corrective action proposals to the owner authorized to apply "
+                "them. Review never mutates production policy itself.",
+        owner_universe="U12",
+        implementing_module="marketplace.universes.u12_intelligence.review",
+        disposition="implement",
+        requirement_ids=["FR-043", "FR-044", "FR-045"],
+        law_ids=["LAW-UMFDVI-024", "LAW-UMFDVI-033", "LAW-UMFDVI-034"],
+    ),
+    CapabilityRecord(
+        capability_id="CAP-FDVI-OBSERVABILITY",
+        domain=DOMAIN,
+        name="Decision observability and control",
+        purpose="Expose lifecycle, latency, reliability, health and alert "
+                "indicators for the decision pipeline as a read-only "
+                "projection, and support incident investigation.",
+        owner_universe="U12",
+        implementing_module="marketplace.universes.u12_intelligence.monitoring",
+        disposition="implement",
+        requirement_ids=["FR-049"],
+        law_ids=["LAW-UMFDVI-010", "LAW-UMFDVI-011"],
     ),
 )
 
@@ -151,8 +192,8 @@ _REQS: tuple[RequirementRecord, ...] = (
     RequirementRecord("FR-018", DOMAIN, "Distinguish estimated benefits from realized benefits.", f"{SOURCE} §20", capability_ids=["CAP-FDVI-ONTOLOGY"], test_ids=["tests/test_registry.py::TestConceptRegistry::test_decision_case_owned_by_u12"]),
     RequirementRecord("FR-019", DOMAIN, "Incorporate authorized risk measures and constraints.", f"{SOURCE} §20", capability_ids=["CAP-FDVI-CONSTRAINTS"], test_ids=["tests/test_fdvi.py::TestRiskLimitConstraint::test_within_limit", "tests/test_fdvi.py::TestRiskLimitConstraint::test_over_limit", "tests/test_fdvi.py::TestRiskLimitConstraint::test_currency_mismatch_in_risk_is_an_error"]),
     RequirementRecord("FR-020", DOMAIN, "Represent material uncertainty.", f"{SOURCE} §20", capability_ids=["CAP-FDVI-EVALUATION"], test_ids=["tests/test_fdvi.py::TestEvaluationRecording::test_missing_uncertainty_is_disclosed"]),
-    RequirementRecord("FR-021", DOMAIN, "Support scenario-based evaluation where required.", f"{SOURCE} §20", capability_ids=["CAP-FDVI-EVALUATION"], test_ids=[], status="not_implemented"),
-    RequirementRecord("FR-022", DOMAIN, "Identify material input sensitivities where the selected method supports them.", f"{SOURCE} §20", capability_ids=["CAP-FDVI-EVALUATION"], test_ids=[], status="not_implemented"),
+    RequirementRecord("FR-021", DOMAIN, "Support scenario-based evaluation where required.", f"{SOURCE} §20", capability_ids=["CAP-FDVI-SCENARIOS"], test_ids=["tests/test_scenarios_fdvi.py::TestScenarioEvaluation::test_deltas_against_baseline", "tests/test_scenarios_fdvi.py::TestScenarioEvaluation::test_threshold_effects_flag_sign_flip", "tests/test_scenarios_fdvi.py::TestScenarioEvaluation::test_recommendation_changes_flag_feasibility_flip", "tests/test_scenarios_fdvi.py::TestScenarioEvaluation::test_downside_must_be_present_for_robustness_claim"]),
+    RequirementRecord("FR-022", DOMAIN, "Identify material input sensitivities where the selected method supports them.", f"{SOURCE} §20", capability_ids=["CAP-FDVI-SCENARIOS"], test_ids=["tests/test_scenarios_fdvi.py::TestSensitivity::test_analyze_records_results", "tests/test_scenarios_fdvi.py::TestSensitivity::test_immaterial_input_not_reported_as_material", "tests/test_scenarios_fdvi.py::TestSensitivity::test_empty_report_cannot_claim_sensitivity", "tests/test_scenarios_fdvi.py::TestSensitivity::test_failing_probe_is_reported_not_hidden"]),
     RequirementRecord("FR-023", DOMAIN, "Support multiple objectives when the decision class requires them.", f"{SOURCE} §20", capability_ids=["CAP-FDVI-OBJECTIVES"], test_ids=["tests/test_fdvi.py::TestConflictDetection::test_conflicting_mandatory_constraints_flagged"]),
     RequirementRecord("FR-024", DOMAIN, "Execute approved optimization methods within defined resource limits.", f"{SOURCE} §20", capability_ids=["CAP-FDVI-OPTIMIZATION"], test_ids=["tests/test_registry.py::TestStateMachinesAreGoverned::test_machines_registered"]),
     RequirementRecord("FR-025", DOMAIN, "Validate solver results before accepting them.", f"{SOURCE} §20", capability_ids=["CAP-FDVI-OPTIMIZATION"], test_ids=["tests/test_registry.py::TestStateMachinesAreGoverned::test_machines_registered"]),
@@ -173,13 +214,13 @@ _REQS: tuple[RequirementRecord, ...] = (
     RequirementRecord("FR-040", DOMAIN, "Identify the method used to attribute an outcome to a decision.", f"{SOURCE} §20", capability_ids=["CAP-FDVI-ONTOLOGY"], test_ids=["tests/test_registry.py::TestConceptRegistry::test_decision_case_owned_by_u12"]),
     RequirementRecord("FR-041", DOMAIN, "Account for applicable incremental costs when calculating net value.", f"{SOURCE} §20", capability_ids=["CAP-FDVI-EVALUATION"], test_ids=["tests/test_fdvi.py::TestEvaluationFinancialArithmetic::test_expected_net_value"]),
     RequirementRecord("FR-042", DOMAIN, "Support independent verification where required.", f"{SOURCE} §20", capability_ids=["CAP-FDVI-GOVERNANCE"], test_ids=["tests/test_governance.py::TestSeparationOfDuties::test_verifier_must_be_independent", "tests/test_governance.py::TestSeparationOfDuties::test_independent_principals_allowed"]),
-    RequirementRecord("FR-043", DOMAIN, "Support post-decision review.", f"{SOURCE} §20", capability_ids=["CAP-FDVI-ONTOLOGY"], test_ids=["tests/test_registry.py::TestConceptRegistry::test_decision_case_owned_by_u12"]),
-    RequirementRecord("FR-044", DOMAIN, "Compare expected and observed outcomes.", f"{SOURCE} §20", capability_ids=["CAP-FDVI-ONTOLOGY"], test_ids=["tests/test_registry.py::TestConceptRegistry::test_decision_case_owned_by_u12"]),
-    RequirementRecord("FR-045", DOMAIN, "Support governed corrective action proposals.", f"{SOURCE} §20", capability_ids=["CAP-FDVI-ONTOLOGY"], test_ids=["tests/test_registry.py::TestConceptRegistry::test_decision_case_owned_by_u12"], status="not_implemented"),
+    RequirementRecord("FR-043", DOMAIN, "Support post-decision review.", f"{SOURCE} §20", capability_ids=["CAP-FDVI-REVIEW"], test_ids=["tests/test_review_fdvi.py::TestReviewComparison::test_material_gap_produces_finding", "tests/test_review_fdvi.py::TestReviewComparison::test_no_financial_effects_produces_no_finding", "tests/test_review_fdvi.py::TestFindings::test_add_finding_links_to_review"]),
+    RequirementRecord("FR-044", DOMAIN, "Compare expected and observed outcomes.", f"{SOURCE} §20", capability_ids=["CAP-FDVI-REVIEW"], test_ids=["tests/test_review_fdvi.py::TestReviewComparison::test_small_gap_produces_no_finding", "tests/test_review_fdvi.py::TestReviewComparison::test_currency_mismatch_flagged_not_converted", "tests/test_review_fdvi.py::TestReviewComparison::test_custom_materiality_threshold"]),
+    RequirementRecord("FR-045", DOMAIN, "Support governed corrective action proposals.", f"{SOURCE} §20", capability_ids=["CAP-FDVI-REVIEW"], test_ids=["tests/test_review_fdvi.py::TestCorrectiveAction::test_proposal_created_and_linked", "tests/test_review_fdvi.py::TestCorrectiveAction::test_complete_blocked_until_material_finding_routed", "tests/test_review_fdvi.py::TestCorrectiveAction::test_only_owner_may_accept", "tests/test_review_fdvi.py::TestCorrectiveAction::test_accept_then_implement_lifecycle", "tests/test_review_fdvi.py::TestNoSelfAppliedProposal::test_missing_owner_application_is_a_violation"]),
     RequirementRecord("FR-046", DOMAIN, "Associate model-dependent evaluations with versioned model references.", f"{SOURCE} §20", capability_ids=["CAP-FDVI-EVALUATION"], test_ids=["tests/test_fdvi.py::TestModelVersionRegistry::test_record_and_get", "tests/test_fdvi.py::TestEvaluationRecording::test_evaluate_rejects_unvalidated_model"]),
     RequirementRecord("FR-047", DOMAIN, "Support monitoring for defined forms of model drift.", f"{SOURCE} §20", capability_ids=["CAP-FDVI-EVALUATION"], test_ids=["tests/test_fdvi.py::TestModelVersionRegistry::test_mark_drift_sets_review", "tests/test_fdvi.py::TestModelVersionRegistry::test_revalidate"]),
     RequirementRecord("FR-048", DOMAIN, "Provide traceable lineage for consequential decisions.", f"{SOURCE} §20", capability_ids=["CAP-FDVI-ONTOLOGY"], test_ids=["tests/test_security.py::TestAuditChain::test_entries_chain"]),
-    RequirementRecord("FR-049", DOMAIN, "Expose lifecycle and reliability indicators.", f"{SOURCE} §20", capability_ids=["CAP-FDVI-ONTOLOGY"], test_ids=["tests/test_state.py::TestRegisteredMachines::test_reservation_machine_initial_state"], status="not_implemented"),
+    RequirementRecord("FR-049", DOMAIN, "Expose lifecycle and reliability indicators.", f"{SOURCE} §20", capability_ids=["CAP-FDVI-OBSERVABILITY"], test_ids=["tests/test_monitoring_fdvi.py::TestLifecycleIndicators::test_progress_and_in_flight", "tests/test_monitoring_fdvi.py::TestReliabilityIndicators::test_rate_computed_from_observations", "tests/test_monitoring_fdvi.py::TestReliabilityIndicators::test_unmeasured_rate_cannot_be_claimed", "tests/test_monitoring_fdvi.py::TestHealth::test_unknown_when_unobserved", "tests/test_monitoring_fdvi.py::TestAlerts::test_failure_rate_alerts", "tests/test_monitoring_fdvi.py::TestIncidentInvestigation::test_snapshot_exposes_every_indicator"]),
     RequirementRecord("FR-050", DOMAIN, "Produce evidence for applicable certification gates.", f"{SOURCE} §20", capability_ids=["CAP-FDVI-ONTOLOGY"], test_ids=["tests/test_registry.py::TestUmfdviConstitution::test_coverage_is_complete"]),
 )
 
