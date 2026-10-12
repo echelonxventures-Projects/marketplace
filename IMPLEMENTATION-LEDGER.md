@@ -91,8 +91,8 @@ claim could not be substantiated it is marked GAP, not VERIFIED.
 | I Automated verification | VERIFIED |
 | J Security & reliability | VERIFIED |
 | K Traceability | VERIFIED |
-| M Git checkpoint | PENDING |
-| N Certification decision | PENDING |
+| M Git checkpoint | VERIFIED — commit `6d9051d` |
+| N Certification decision | CONDITIONAL — see §7 |
 
 ## 5. Work log (append-only)
 
@@ -177,3 +177,51 @@ claim could not be substantiated it is marked GAP, not VERIFIED.
   - 4 declared gaps (FR-021/022/045/049), reported by `gaps()`.
   - 27/27 `LAW-UMFDVI` enforcement hooks resolve to real code.
   - 157/157 registered test ids exist in the collected suite.
+
+## 7. Certification decision (Phase N)
+
+**Decision: CONDITIONAL PASS.**
+
+The capability is certified subject to the four declared gaps being resolved or
+formally accepted by the canonical owner. The decision follows the
+evidence-based status rule (LAW-GOV-11): certification is granted only on
+evidence, not on document presence.
+
+### Evidence in favour
+
+| Claim | Evidence |
+|---|---|
+| Implementation exists and runs | 299 tests pass; every `marketplace.*` module imports |
+| Financial honesty (INV-010, AC-013) | `EvaluationService` rejects mixed currencies; no float in the decision path |
+| Optimizer honesty (INV-018, AC-019) | `optimality_claim` is derived from declared solver capability, asserted in tests |
+| Authorization is fail-safe (INV-001/002/013) | unavailable authorities block execution rather than bypassing it |
+| Idempotent execution (INV-007/012) | unknown outcomes require authoritative resolution before re-submission |
+| Canonical ownership (GOV-02) | every concept has one write owner; competing registration is rejected |
+| Traceability (GOV-06) | 157/157 registered test ids resolve to collected tests |
+
+### Conditions (must close before full certification)
+
+1. **FR-021 / FR-022 — scenario and sensitivity analysis.** Registered as
+   `not_implemented` with no tests. No code path currently supports them.
+2. **FR-045 — corrective-action proposals.** Registered as `not_implemented`.
+   `DecisionReview` carries `corrective_action_refs` but no governed proposal
+   path exists to populate them.
+3. **FR-049 — operational monitoring.** Registered as `not_implemented`. No
+   lifecycle or reliability indicators are exposed.
+
+### Observations (no action required for certification)
+
+- FR-009..011 (evidence assembly, provenance, freshness) are traced to the
+  ontology and machine-registration tests rather than to dedicated evidence
+  tests. `EvidenceStore` is implemented and the freshness path is exercised
+  indirectly, but a focused `tests/test_evidence_fdvi.py` would strengthen
+  the claim.
+- Several `AI-*` architectural invariants are traced to tests that exercise
+  the same code path rather than to a test asserting the invariant by name.
+  The traceability is real but coarse-grained.
+
+### Signature
+
+Certified by the implementation ledger on the evidence above. This is a
+machine-recorded decision; a human owner of U12 must ratify it, per
+LAW-GOV-14 (human accountability for automation).
