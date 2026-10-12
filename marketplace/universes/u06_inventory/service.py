@@ -14,17 +14,15 @@ from __future__ import annotations
 import threading
 from dataclasses import dataclass, field
 from decimal import Decimal
-from typing import Iterable, Optional
+from typing import Optional
 
 from marketplace.kernel import (
     AuthorizationContext,
     IdempotencyStore,
-    MarketplaceError,
     Stateful,
     generate,
 )
 from marketplace.kernel.errors import (
-    IllegalTransitionError,
     InvariantViolationError,
     NotFoundError,
     OversellError,
@@ -296,6 +294,11 @@ class InventoryService:
                     )
             now = U06.now()
             ttl = ttl_seconds if ttl_seconds is not None else position.policy.reservation_ttl_seconds
+            from datetime import datetime, timedelta
+
+            expires_at = (
+                datetime.fromisoformat(now.replace("Z", "+00:00")) + timedelta(seconds=ttl)
+            ).isoformat()
             reservation = Reservation(
                 reservation_id=generate("reservation"),
                 position_id=position.position_id,
@@ -303,6 +306,7 @@ class InventoryService:
                 quantity=quantity,
                 state="reserved",
                 created_at=now,
+                expires_at=expires_at,
                 correlation_id=correlation_id,
             )
             entity = ReservationEntity(reservation.reservation_id)

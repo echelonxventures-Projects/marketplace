@@ -19,7 +19,6 @@ from marketplace.kernel import (
     MarketplaceError,
     Stateful,
     generate,
-    identifiers,
 )
 from marketplace.kernel.authorization import Delegation
 from marketplace.kernel.errors import (
@@ -27,10 +26,9 @@ from marketplace.kernel.errors import (
     AuthorizationError,
     ConsentRequiredError,
     NotFoundError,
-    TenantIsolationError,
 )
 from marketplace.kernel.state import StateMachine, Transition, register_machine
-from marketplace.universes._base import U01, universe
+from marketplace.universes._base import U01
 
 # ---------------------------------------------------------------------------
 # Canonical entities
@@ -253,7 +251,8 @@ class IdentityService:
         proof raises AuthenticationError — never a success with reduced
         privileges.
         """
-        from hashlib import pbkdf2_hmac, secrets
+        from hashlib import pbkdf2_hmac
+        import secrets
 
         identity_id = self._by_external.get(("idp", subject))
         if identity_id is None:

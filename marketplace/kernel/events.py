@@ -11,7 +11,7 @@ from __future__ import annotations
 
 import threading
 from collections import defaultdict, deque
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from typing import Callable, Iterable, Optional
 
 from .errors import DeadLetterError

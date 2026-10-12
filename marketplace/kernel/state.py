@@ -12,8 +12,8 @@ a live instance that may only transition through its machine's table.
 
 from __future__ import annotations
 
-from dataclasses import dataclass, field
-from typing import Callable, Iterable, Optional
+from dataclasses import dataclass
+from typing import Iterable, Optional
 
 from .errors import IllegalTransitionError
 

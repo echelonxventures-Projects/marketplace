@@ -10,21 +10,11 @@ checkout sequence of master spec §13.
 
 from __future__ import annotations
 
-import threading
 from dataclasses import dataclass, field
-from typing import Iterable, Optional
+from typing import Optional
 
-from marketplace.kernel import AuthorizationContext, Money, Stateful, generate
-from marketplace.kernel.errors import (
-    DuplicateRequestError,
-    IllegalTransitionError,
-    InvariantViolationError,
-    NotFoundError,
-    ValidationError,
-)
-from marketplace.kernel.money import sum_money, zero
+from marketplace.kernel import Money, Stateful
 from marketplace.kernel.state import StateMachine, Transition, register_machine
-from marketplace.universes._base import U08
 
 # ---------------------------------------------------------------------------
 # State machines (§7.1)

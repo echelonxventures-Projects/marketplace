@@ -17,7 +17,7 @@ import hashlib
 import re
 import threading
 import uuid
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from typing import Optional
 
 # Each canonical concept owns a stable identifier prefix. Adding a prefix is a

@@ -13,7 +13,7 @@ import json
 import threading
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
-from typing import Callable, Iterable, Optional
+from typing import Iterable, Optional
 
 from .errors import AuthorizationError, TenantIsolationError
 

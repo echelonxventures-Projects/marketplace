@@ -12,8 +12,6 @@ from typing import Callable, Optional
 
 from .errors import (
     DuplicateRequestError,
-    TimeoutError as KernelTimeoutError,
-    UnknownOutcomeError,
 )
 
 
@@ -38,20 +36,26 @@ class IdempotencyStore:
                 return self._outcomes[key]
             if key in self._inflight:
                 event = self._inflight[key]
+                owner = False
             else:
                 event = threading.Event()
                 self._inflight[key] = event
-        if not event.is_set():
+                owner = True
+        if owner:
+            # Only the thread that registered the inflight event executes; every
+            # other caller waits on it (INV-02/INV-03: a duplicate command must
+            # never re-run the side effect).
             try:
                 result = operation()
             except Exception:
                 with self._lock:
                     self._inflight.pop(key, None)
+                    event.set()
                 raise
             with self._lock:
                 self._outcomes[key] = result
                 self._inflight.pop(key, None)
-                event.set()
+            event.set()
             return result
         event.wait(timeout=30)
         with self._lock:
@@ -129,7 +133,14 @@ class Saga:
             if step.name not in execution.completed_steps:
                 continue
             if step.compensate is None:
-                continue
+                # The step took effect but cannot be rolled back. The saga may
+                # not claim it was compensated; it fails for manual recovery.
+                execution.error = (
+                    f"{execution.error or ''} | step {step.name!r} completed but has no "
+                    "compensation, so its effect is unrecoverable automatically"
+                )
+                execution.state = "failed"
+                return
             try:
                 step.compensate(execution.context, execution.context)
                 compensated.append(step.name)

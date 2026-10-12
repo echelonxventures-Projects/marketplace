@@ -11,14 +11,13 @@ GAP-0001 closure).
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from typing import Any, Iterable, Optional
+from typing import Any, Optional
 
 from marketplace.kernel import (
     AuthorizationContext,
     MarketplaceError,
     Stateful,
     generate,
-    identifiers,
 )
 from marketplace.kernel.errors import (
     NotFoundError,

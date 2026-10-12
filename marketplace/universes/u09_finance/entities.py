@@ -11,7 +11,6 @@ facts (LAW-ARCH-04) and INV-03/INV-04.
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from decimal import Decimal
 from typing import Optional
 
 from marketplace.kernel import Money, Stateful

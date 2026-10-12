@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import threading
-from decimal import Decimal
 from typing import Iterable, Optional
 
 from marketplace.kernel import AuthorizationContext, IdempotencyStore, Money, generate
@@ -14,14 +13,11 @@ from marketplace.kernel.errors import (
     NotFoundError,
     ValidationError,
 )
-from marketplace.kernel.money import sum_money, zero
 from marketplace.universes._base import U08
 from marketplace.universes.u08_order.entities import (
     Cart,
     CartLine,
     Cancellation,
-    CheckoutEntity,
-    LineSnapshot,
     Order,
     OrderEntity,
     OrderSnapshot,
@@ -52,7 +48,7 @@ class OrderService:
         if quantity <= 0:
             raise ValidationError("Cart quantity must be positive")
         cart = self._require_cart(cart_id)
-        line = next((l for l in cart.lines if l.offer_id == offer_id), None)
+        line = next((ln for ln in cart.lines if ln.offer_id == offer_id), None)
         if line is None:
             cart.lines.append(
                 CartLine(offer_id, product_id, variant_id, seller_id, quantity, U08.now())
@@ -67,7 +63,7 @@ class OrderService:
         guest = self._require_cart(guest_cart_id)
         account = self._require_cart(account_cart_id)
         for line in guest.lines:
-            existing = next((l for l in account.lines if l.offer_id == line.offer_id), None)
+            existing = next((ln for ln in account.lines if ln.offer_id == line.offer_id), None)
             if existing is None:
                 account.lines.append(line)
             else:

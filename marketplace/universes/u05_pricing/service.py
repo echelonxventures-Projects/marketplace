@@ -27,7 +27,7 @@ from marketplace.kernel.errors import (
     NotFoundError,
     ValidationError,
 )
-from marketplace.kernel.money import ROUNDING, sum_money, zero
+from marketplace.kernel.money import zero
 from marketplace.universes._base import U05
 
 # ---------------------------------------------------------------------------

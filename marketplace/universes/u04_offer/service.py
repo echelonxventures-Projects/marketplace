@@ -10,11 +10,10 @@ deliberately distinct from Product (master), Listing (presentation) and Price
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from typing import Iterable, Optional
+from typing import Optional
 
 from marketplace.kernel import (
     AuthorizationContext,
-    MarketplaceError,
     Money,
     Stateful,
     generate,
@@ -25,7 +24,6 @@ from marketplace.kernel.errors import (
     NotFoundError,
     ValidationError,
 )
-from marketplace.kernel.money import zero
 from marketplace.kernel.state import StateMachine, Transition, register_machine
 from marketplace.universes._base import U04
 

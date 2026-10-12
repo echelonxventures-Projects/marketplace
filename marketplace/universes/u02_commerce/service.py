@@ -12,7 +12,7 @@ retaining their own policies.
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from typing import Iterable, Optional
+from typing import Optional
 
 from marketplace.kernel import AuthorizationContext, generate
 from marketplace.kernel.errors import NotFoundError, ValidationError

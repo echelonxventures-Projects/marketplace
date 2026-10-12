@@ -14,7 +14,7 @@ from __future__ import annotations
 
 import threading
 from dataclasses import dataclass, field
-from typing import Any, Iterable, Optional
+from typing import Iterable
 
 from .errors import DuplicateCanonicalConceptError, NotFoundError, OrphanArtifactError
 
@@ -149,6 +149,11 @@ class CapabilityRegistry:
     def all(self) -> Iterable[CapabilityRecord]:
         return list(self._capabilities.values())
 
+    def _unregister(self, capability_id: str) -> None:
+        """Test-only cleanup so fixture records do not pollute the registry."""
+        with self._lock:
+            self._capabilities.pop(capability_id, None)
+
     def assert_no_dead_capabilities(self) -> None:
         dead = [c for c in self._capabilities.values() if c.status == "planned"]
         if dead:
@@ -177,6 +182,16 @@ class RequirementRecord:
     def trace_complete(self) -> bool:
         return bool(self.capability_ids) and bool(self.test_ids)
 
+    @property
+    def implemented(self) -> bool:
+        """A requirement is implemented when it traces to capability and test."""
+        return self.status == "implemented" and self.trace_complete()
+
+    @property
+    def gap(self) -> bool:
+        """A requirement is a known gap: explicitly not yet implemented."""
+        return self.status != "implemented"
+
 
 class RequirementRegistry:
     def __init__(self) -> None:
@@ -201,8 +216,26 @@ class RequirementRegistry:
     def all(self) -> Iterable[RequirementRecord]:
         return list(self._requirements.values())
 
+    def _unregister(self, requirement_id: str) -> None:
+        """Test-only cleanup so fixture records do not pollute the registry."""
+        with self._lock:
+            self._requirements.pop(requirement_id, None)
+
     def untraced(self) -> list[RequirementRecord]:
-        return [r for r in self._requirements.values() if not r.trace_complete()]
+        """Requirements claimed implemented but lacking capability or test trace.
+
+        This is a defect: the requirement asserts implementation it cannot
+        substantiate (GOV-06, LAW-GOV-11). Use :meth:`gaps` for requirements
+        that are explicitly registered as not yet built.
+        """
+        return [
+            r for r in self._requirements.values()
+            if r.status == "implemented" and not r.trace_complete()
+        ]
+
+    def gaps(self) -> list[RequirementRecord]:
+        """Requirements registered as not yet implemented, by status."""
+        return [r for r in self._requirements.values() if r.gap]
 
 
 REQUIREMENTS = RequirementRegistry()
@@ -236,6 +269,10 @@ class InvariantRegistry:
 
     def all(self) -> Iterable[InvariantRecord]:
         return list(self._invariants.values())
+
+    def _unregister(self, invariant_id: str) -> None:
+        """Test-only cleanup so fixture records do not pollute the registry."""
+        self._invariants.pop(invariant_id, None)
 
 
 INVARIANTS = InvariantRegistry()

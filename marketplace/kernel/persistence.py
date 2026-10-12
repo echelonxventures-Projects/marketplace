@@ -13,7 +13,7 @@ import sqlite3
 import threading
 from contextlib import contextmanager
 from dataclasses import dataclass
-from typing import Any, Iterable, Iterator, Optional
+from typing import Any, Iterator, Optional
 
 from .errors import ConcurrencyConflictError, NotFoundError
 
