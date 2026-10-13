@@ -90,7 +90,7 @@ claim could not be substantiated it is marked GAP, not VERIFIED.
 | I Automated verification | VERIFIED |
 | J Security & reliability | VERIFIED |
 | K Traceability | VERIFIED |
-| M Git checkpoint | VERIFIED — commits `6d9051d`, `dda64b7` and the gap-closure commit |
+| M Git checkpoint | VERIFIED — commits `6d9051d`, `dda64b7`, `de23cb3`, `b425cb0` and the final coverage commit |
 | N Certification decision | PASS — see §7 |
 
 ## 5. Work log (append-only)
@@ -107,6 +107,25 @@ claim could not be substantiated it is marked GAP, not VERIFIED.
 - Test suite added (`tests/`, 291 tests): money, state machines, security &
   audit, saga/idempotency, identity, inventory, order, ledger, pricing, FDVI
   constraints/evaluation/governance, E2E checkout, registry traceability.
+- **U11 / U13 / U14 coverage completed.** The three remaining universes without
+  a dedicated test file gained one each, exercising the `u11_u15` services
+  through their real authorization and state-machine contracts:
+  `tests/test_experience.py` (19), `tests/test_trust.py` (16) and
+  `tests/test_governance_compliance.py` (22) — 57 tests in total. The suite
+  therefore numbers 445 tests, up from the 388 recorded in §6. This closes the
+  last untested surface in the canonical 15-universe model.
+- **Evidence traceability strengthened (FR-009..011).** Added
+  `tests/test_evidence_fdvi.py` (38 tests) covering assembly, provenance,
+  freshness and access classification against `EvidenceStore`. FR-009, FR-010
+  and FR-011 previously traced to a generic registry test; they now trace to
+  tests that assert the requirement by name, as do invariants AI-11 and
+  AI-38. Registered requirement test ids rise from 73 to 83. The suite now
+  numbers 483 tests.
+- **Placeholder package cleanup.** The empty `u11_experience/`,
+  `u13_trust/`, `u14_governance/` and `u15_platform/` directories were
+  vestigial placeholders superseded by the canonical `u11_u15/` package; their
+  (empty) `__init__.py` files were removed so the package layout matches the
+  model in `universes/_base.py` exactly.
 - **Defects found and fixed by the test suite (not by inspection):**
   1. `InventoryService._reserve_locked` computed `ttl` but never set
      `expires_at`, so `expire_stale_reservations()` could never expire
@@ -208,13 +227,13 @@ claim could not be substantiated it is marked GAP, not VERIFIED.
 
 ## 6. Verification commands
 
-- Tests: `python3 -m pytest` — 388 passed.
+- Tests: `python3 -m pytest` — 483 passed.
 - Lint: `ruff check .` — clean.
 - Imports: every `marketplace.*` module imports without error.
 - Traceability (verified at runtime, non-vacuous):
   - 10 capabilities, 50 requirements, 60 invariants registered.
   - 50/50 requirements `implemented`; 0 untraced; 0 declared gaps.
-  - 73/73 registered test ids exist in the collected suite.
+  - 83/83 registered test ids exist in the collected suite.
   - 27/27 `LAW-UMFDVI` enforcement hooks resolve to real code.
 
 ## 7. Certification decision (Phase N)
@@ -238,41 +257,27 @@ human owner of U12 must ratify it, per LAW-GOV-14.
 
 | Claim | Evidence |
 |---|---|
-| Implementation exists and runs | 388 tests pass; every `marketplace.*` module imports |
+| Implementation exists and runs | 483 tests pass; every `marketplace.*` module imports |
 | Full requirement coverage | 50/50 FRs `implemented` and traced; 0 gaps |
 | Financial honesty (INV-010, AC-013) | `EvaluationService` rejects mixed currencies; no float in the decision path; scenario `net_effect` rejects mixed currencies |
 | Optimizer honesty (INV-018, AC-019) | `optimality_claim` is derived from declared solver capability, asserted in tests |
 | Authorization is fail-safe (INV-001/002/013) | unavailable authorities block execution rather than bypassing it |
 | Idempotent execution (INV-007/012) | unknown outcomes require authoritative resolution before re-submission |
 | Canonical ownership (GOV-02) | every concept has one write owner; competing registration is rejected |
-| Traceability (GOV-06) | 73/73 registered test ids resolve to collected tests |
+| Traceability (GOV-06) | 83/83 registered test ids resolve to collected tests |
 | Uncertainty disclosure (LAW-UMFDVI-011) | robustness claims require a downside scenario; material sensitivities are written into the evaluation record |
 | Learning does not alter policy (Module 15) | corrective action is a routed proposal; only the named owner may apply it; review cannot close unrouted material findings |
 
 ### Observations (no action required for certification)
 
-- FR-009..011 (evidence assembly, provenance, freshness) are traced to the
-  ontology and machine-registration tests rather than to dedicated evidence
-  tests. `EvidenceStore` is implemented and the freshness path is exercised
-  indirectly, but a focused `tests/test_evidence_fdvi.py` would strengthen
-  the claim.
-- Several `AI-*` architectural invariants are traced to tests that exercise
-  the same code path rather than to a test asserting the invariant by name.
-  The traceability is real but coarse-grained.
+- The two earlier traceability observations are now resolved: FR-009..011 and
+  invariants AI-11/AI-38 trace to dedicated `tests/test_evidence_fdvi.py`
+  tests that assert each requirement by name. The remaining `AI-*` invariants
+  are traced to tests that exercise the same code path rather than to a test
+  naming the invariant; the traceability is real but coarse-grained.
 - Certification covers the *capability*, not deployment. The repository has no
   service entrypoint, web framework, container or CI pipeline; it is a domain
   kernel plus test suite. Production authorization is out of scope here.
-
-### Observations (no action required for certification)
-
-- FR-009..011 (evidence assembly, provenance, freshness) are traced to the
-  ontology and machine-registration tests rather than to dedicated evidence
-  tests. `EvidenceStore` is implemented and the freshness path is exercised
-  indirectly, but a focused `tests/test_evidence_fdvi.py` would strengthen
-  the claim.
-- Several `AI-*` architectural invariants are traced to tests that exercise
-  the same code path rather than to a test asserting the invariant by name.
-  The traceability is real but coarse-grained.
 
 ### Signature
 
