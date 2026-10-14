@@ -463,7 +463,7 @@ def _update_applied(discrepancy: Optional[str]) -> bool:
 
 
 # Concept ownership declarations (GOV-02).
-U06.owns("inventory_position", "Quantity and allocation by item, location, owner, condition and time", "U06.InventoryService.create_position", read_projections=["U04.offer", "U11.availability_projection"])
+U06.owns("inventory_position", "Quantity and allocation by item, location, owner, condition and time", "U06.InventoryService.create_position", read_projections=["U04.offer", "U06.availability_projection"])
 U06.owns("reservation", "Temporary or committed allocation of inventory or capacity", "U06.InventoryService.reserve")
 U06.owns("availability_projection", "Computed available-to-promise under explicit policy; rebuildable", "U06.InventoryService.availability")
 U06.owns("replenishment_order", "Replenishment plan with supplier and lead time", "U06.InventoryService.plan_replenishment")

@@ -511,7 +511,7 @@ U12.owns(
     "decision_case",
     "Consequential decision lifecycle: context, evidence, constraints, "
     "alternatives, recommendation, approval, execution and outcome",
-    "U12.GovernanceService.create_intent",
+    "U12.ExecutionCoordinator.create_intent",
     read_projections=["U14.policy", "U01.delegation"],
 )
 U12.owns(

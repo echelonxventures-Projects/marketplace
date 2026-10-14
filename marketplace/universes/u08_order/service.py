@@ -263,7 +263,7 @@ class OrderService:
 
 U08.owns(
     "cart", "Mutable collection of intended purchases; explicitly not a confirmed order",
-    "U08.OrderService.open_cart", read_projections=["U11.cart_projection"],
+    "U08.OrderService.open_cart",
 )
 U08.owns("checkout_attempt", "Validated attempt to create a purchase transaction", "U08.OrderService.place_order")
 U08.owns("order", "Durable commercial commitment and its lifecycle", "U08.OrderService.place_order", read_projections=["U10.fulfillment_order", "U09.payment_intent"])

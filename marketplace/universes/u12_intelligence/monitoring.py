@@ -612,5 +612,5 @@ U12.owns(
     "Lifecycle, latency, reliability and health indicators for the decision "
     "pipeline, exposed as a read-only projection",
     "U12.ObservabilityService.snapshot",
-    read_projections=["U14.policy", "U12.models", "U12.evaluation"],
+    read_projections=["U14.policy", "U12.model_registration", "U12.decision_evaluation"],
 )

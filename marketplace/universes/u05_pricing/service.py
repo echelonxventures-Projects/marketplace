@@ -575,7 +575,7 @@ class PricingService:
 
 
 # Concept ownership declarations (GOV-02).
-U05.owns("price_book", "Price inputs with currency, scope, tier and validity", "U05.PricingService.set_price", read_projections=["U08.order_snapshot"])
+U05.owns("price_book", "Price inputs with currency, scope, tier and validity", "U05.PricingService.set_price", read_projections=["U04.offer"])
 U05.owns("price_evaluation", "Evaluated price result with inputs, policy version and validity", "U05.PricingService.evaluate")
 U05.owns("promotion", "Campaign with funding attribution and redemption limits", "U05.PricingService.create_promotion")
 U05.owns("coupon", "Issued coupon instance with single-use redemption state", "U05.PricingService.issue_coupon")

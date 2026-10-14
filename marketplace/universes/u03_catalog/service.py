@@ -621,10 +621,10 @@ class CatalogService:
 
 
 # Concept ownership declarations (GOV-02).
-U03.owns("product", "Canonical sellable concept and identifier mappings", "U03.CatalogService.create_product", read_projections=["U04.listing", "U11.search_index"])
+U03.owns("product", "Canonical sellable concept and identifier mappings", "U03.CatalogService.create_product", read_projections=["U04.listing", "U11.search_projection"])
 U03.owns("product_variant", "Distinguishable product configuration", "U03.CatalogService.add_variant")
 U03.owns("product_family", "Grouping of related product definitions", "U03.CatalogService.register_family")
 U03.owns("taxonomy", "Versioned classification definitions and validation constraints", "U03.SchemaRegistry.register_taxonomy_node")
 U03.owns("attribute_schema", "Versioned typed attribute definitions with compatibility rules", "U03.SchemaRegistry.publish_schema")
 U03.owns("brand", "Brand and manufacturer definitions", "U03.CatalogService.register_brand")
-U03.owns("media_asset", "Product media with rights, provenance and moderation state", "U03.CatalogService.add_media", read_projections=["U13.moderation"])
+U03.owns("media_asset", "Product media with rights, provenance and moderation state", "U03.CatalogService.add_media", read_projections=["U13.moderation_decision"])

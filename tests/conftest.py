@@ -42,6 +42,8 @@ def authz():
                 "inventory.feed",
                 "pricing.writer",
                 "constraint.writer",
+                "objective.writer",
+                "solver.governance",
                 "decision.requester",
                 "decision.owner",
                 "decision.approver",

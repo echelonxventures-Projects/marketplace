@@ -478,5 +478,5 @@ U12.owns(
     "decision_sensitivity",
     "The measured sensitivity of an objective to a material decision input",
     "U12.SensitivityService.analyze",
-    read_projections=["U12.evaluation"],
+    read_projections=["U12.decision_evaluation"],
 )

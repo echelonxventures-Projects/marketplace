@@ -341,5 +341,5 @@ class SellerService:
 
 U07.owns("seller_profile", "Commercial marketplace relationship and seller status; legal party is U01", "U07.SellerService.register_seller")
 U07.owns("onboarding_case", "Seller verification case with KYB evidence and decision audit", "U07.SellerService.open_onboarding")
-U07.owns("seller_contract", "Seller agreement: territories, channels, catalog permissions, status", "U07.SellerService.sign_contract", read_projections=["U04.offer_eligibility"])
+U07.owns("seller_contract", "Seller agreement: territories, channels, catalog permissions, status", "U07.SellerService.sign_contract", read_projections=["U04.offer"])
 U07.owns("commission_terms", "Commission rate, fixed and minimum fees with validity", "U07.SellerService.sign_contract", read_projections=["U09.settlement"])

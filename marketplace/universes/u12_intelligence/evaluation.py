@@ -296,3 +296,16 @@ class EvaluationService:
                 )
             out[key] = amount.convert_to(rate, target_currency)
         return out
+
+
+# Concept ownership declaration (GOV-02). The evaluation record is the canonical
+# artifact other U12 capabilities read when they reason about a decision.
+from marketplace.universes._base import U12  # noqa: E402
+
+U12.owns(
+    "decision_evaluation",
+    "Feasibility classification, financial effect and disclosed uncertainty for "
+    "one alternative under a named evaluation method and model versions",
+    "U12.EvaluationService.evaluate",
+    read_projections=["U12.decision_sensitivity", "U12.decision_observability"],
+)

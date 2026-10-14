@@ -634,10 +634,27 @@ class EnforcementAction:
     reversed_at: Optional[str] = None
 
 
+@dataclass
+class ModerationDecision:
+    """REQ-TRUST-004: a content moderation outcome with rule version and appeal."""
+
+    decision_id: str
+    subject_type: str  # review | listing | promotion
+    subject_id: str
+    rule_version: str
+    reviewer: str
+    reason: str
+    at: str
+    status: str = "in_moderation"  # queued | in_moderation | escalated | approved | rejected
+    outcome: Optional[str] = None  # approved | rejected
+    escalated_by: Optional[str] = None
+
+
 class TrustService:
     def __init__(self) -> None:
         self.risk_cases: dict[str, RiskCase] = {}
         self.disputes: dict[str, DisputeCase] = {}
+        self.moderation: dict[str, ModerationDecision] = {}
         self.enforcement: list[EnforcementAction] = []
         self._lock = threading.RLock()
 
@@ -737,6 +754,65 @@ class TrustService:
             + timedelta(days=appeal_window_days)
         ).isoformat()
         return dispute
+
+    def moderate(
+        self,
+        authz: AuthorizationContext,
+        subject_type: str,
+        subject_id: str,
+        rule_version: str,
+        *,
+        reason: str,
+    ) -> ModerationDecision:
+        """REQ-TRUST-004: take content into moderation under a named rule version."""
+        authz.requires_role("moderation.service")
+        if subject_type not in {"review", "listing", "promotion"}:
+            raise ValidationError(f"Unknown moderation subject type {subject_type!r}")
+        decision = ModerationDecision(
+            decision_id=generate("case"),
+            subject_type=subject_type,
+            subject_id=subject_id,
+            rule_version=rule_version,
+            reviewer=authz.actor_id,
+            reason=reason,
+            at=U13.now(),
+            status="queued",
+        )
+        entity = ModerationEntity(decision.decision_id)
+        entity.transition_to(
+            "in_moderation", actor=authz.actor_id, actor_roles=authz.roles,
+            reason=reason, recorded_at=decision.at,
+        )
+        decision.status = entity.state
+        self.moderation[decision.decision_id] = decision
+        return decision
+
+    def resolve_moderation(
+        self,
+        authz: AuthorizationContext,
+        decision_id: str,
+        outcome: str,
+        *,
+        reason: str,
+    ) -> ModerationDecision:
+        """Resolve moderation: approve/reject, or escalate for an admin decision."""
+        decision = self.moderation.get(decision_id)
+        if decision is None:
+            raise NotFoundError(f"Moderation decision {decision_id} not found")
+        if outcome not in {"approved", "rejected", "escalated"}:
+            raise ValidationError(f"Unknown moderation outcome {outcome!r}")
+        entity = ModerationEntity(decision_id)
+        entity.state = decision.status
+        entity.transition_to(
+            outcome, actor=authz.actor_id, actor_roles=authz.roles,
+            reason=reason, recorded_at=U13.now(),
+        )
+        decision.status = entity.state
+        if outcome == "escalated":
+            decision.escalated_by = authz.actor_id
+        elif entity.state in {"approved", "rejected"}:
+            decision.outcome = outcome
+        return decision
 
     def appeal(
         self, authz: AuthorizationContext, dispute_id: str
@@ -1092,7 +1168,7 @@ class PlatformService:
         return runbook
 
 
-U15.owns("api_contract", "Owned, versioned API contract with deprecation lifecycle", "U15.PlatformService.publish_api", read_projections=["catalog.api"])
+U15.owns("api_contract", "Owned, versioned API contract with deprecation lifecycle", "U15.PlatformService.publish_api")
 U15.owns("webhook_subscription", "Webhook delivery with replay protection and subscriber lifecycle", "U15.PlatformService.register_webhook")
 U15.owns("service_level_objective", "Journey SLO with target and error budget", "U15.PlatformService.define_slo")
 U15.owns("runbook", "Operational response and rollback procedure", "U15.PlatformService.write_runbook")

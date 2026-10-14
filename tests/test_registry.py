@@ -356,3 +356,68 @@ class TestStateMachinesAreGoverned:
                 CONCEPTS.get(machine.concept)
             except NotFoundError:
                 pytest.fail(f"machine {machine.name} governs unregistered concept {machine.concept}")
+
+
+class TestConceptOwnershipResolves:
+    """GOV-02 machine-checked: every declared write path and read projection
+    resolves to code/concepts that actually exist.
+
+    A concept that claims a writer or a projection which does not exist is a
+    false completeness claim, so this test fails instead of passing on a
+    string that merely looks well-formed.
+    """
+
+    def test_all_universes_own_concepts(self):
+        from marketplace.universes._base import ALL_UNIVERSES
+
+        owners = {rec.owner_universe for rec in CONCEPTS.all()}
+        for universe_id in ALL_UNIVERSES:
+            assert universe_id in owners, (
+                f"{universe_id} owns no canonical concept; every universe in the "
+                "canonical 15-universe model must register at least one"
+            )
+
+    def test_every_write_path_resolves_to_a_real_callable(self):
+        import pkgutil
+
+        import marketplace.universes as uu
+
+        # Index every class defined in any loaded marketplace.universes module.
+        classes: dict[str, list[type]] = {}
+        for _finder, name, _ispkg in pkgutil.walk_packages(uu.__path__, "marketplace.universes."):
+            try:
+                module = __import__(name, fromlist=["__name__"])
+            except ImportError:
+                continue
+            for attr, obj in vars(module).items():
+                if isinstance(obj, type):
+                    classes.setdefault(attr, []).append(obj)
+
+        for record in CONCEPTS.all():
+            parts = record.write_path.split(".")
+            assert len(parts) == 3, (
+                f"{record.concept}: malformed write path {record.write_path!r} "
+                "(expected 'Uxx.Service.method')"
+            )
+            _universe, cls_name, method = parts
+            candidates = classes.get(cls_name, [])
+            assert candidates, f"{record.concept}: write path names unknown class {cls_name!r}"
+            assert any(hasattr(cls, method) for cls in candidates), (
+                f"{record.concept}: write path {record.write_path!r} does not resolve; "
+                f"{cls_name} has no method {method!r}"
+            )
+
+    def test_every_read_projection_resolves_to_a_registered_concept(self):
+        by_key = {(rec.owner_universe, rec.concept): rec for rec in CONCEPTS.all()}
+
+        for record in CONCEPTS.all():
+            for projection in record.read_projections:
+                parts = projection.split(".")
+                assert len(parts) == 2, (
+                    f"{record.concept}: malformed read projection {projection!r} "
+                    "(expected 'Uxx.concept')"
+                )
+                assert (parts[0], parts[1]) in by_key, (
+                    f"{record.concept}: read projection {projection!r} is not a "
+                    "registered concept; derived read models must name a real concept"
+                )

@@ -453,5 +453,5 @@ U01.owns("identity", "Authentication identity, factors and session state", "U01.
 U01.owns("credential", "Authentication factor verifier; secrets isolated", "U01.IdentityService.enroll_credential")
 U01.owns("session", "Authenticated session state", "U01.IdentityService.authenticate")
 U01.owns("consent", "Purpose-bound consent grant and revocation", "U01.IdentityService.grant_consent", read_projections=["U14.retention_schedule"])
-U01.owns("delegation", "Delegated authority with validity, scope and limits", "U01.IdentityService.delegate", read_projections=["U12.agent_authority"])
+U01.owns("delegation", "Delegated authority with validity, scope and limits", "U01.IdentityService.delegate", read_projections=["U12.agent_capability"])
 U01.owns("organization", "Business or organizational structure", "U01.IdentityService.register_organization")

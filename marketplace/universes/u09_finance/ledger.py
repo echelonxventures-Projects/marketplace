@@ -269,9 +269,9 @@ class LedgerService:
 # owned here so that the payment service's own declarations are the canonical
 # registration point for the accounting domain.
 U09.owns("ledger_account", "Chart-of-accounts account with currency, kind and dimensions", "U09.LedgerService.open_account")
-U09.owns("journal_entry", "Append-only double-entry record; corrections are reversals", "U09.LedgerService.post", read_projections=["U08.order", "U14.audit"])
+U09.owns("journal_entry", "Append-only double-entry record; corrections are reversals", "U09.LedgerService.post", read_projections=["U08.order"])
 U09.owns("payment_intent", "Authorized payment commitment for an order", "U09.PaymentService.authorize", read_projections=["U08.order"])
 U09.owns("payment_operation", "Provider operation: authorize, capture, void or refund", "U09.PaymentService.authorize", read_projections=["U09.payment_intent"])
 U09.owns("refund", "Return of captured funds with reason and authorization", "U09.PaymentService.request_refund", read_projections=["U08.order"])
 U09.owns("seller_payable", "Amount owed to a seller, computed under settlement policy", "U09.SettlementService.create_payable", read_projections=["U07.commission_terms"])
-U09.owns("settlement", "Settlement period, statement and payout reconciliation", "U09.SettlementService.create_settlement", read_projections=["U07.seller_profile"])
+U09.owns("settlement", "Settlement period, statement and payout reconciliation", "U09.SettlementService.open_settlement", read_projections=["U07.seller_profile"])

@@ -100,6 +100,7 @@ class Listing:
     product_id: str
     title: str
     taxonomy_node_id: str
+    tenant_id: str = ""
     status: str = "draft"
     version: int = 0
     locale: str = "en"
@@ -193,18 +194,27 @@ class OfferService:
         title: str,
         taxonomy_node_id: str,
         *,
+        tenant_id: Optional[str] = None,
         overlays: Optional[dict[str, str]] = None,
     ) -> Listing:
-        authz.requires_role("seller").same_tenant(seller_id.split("-", 1)[-1][:4] if seller_id.startswith("SLR") else authz.tenant_id)
+        # The seller's tenant is authoritative for isolation (REQ-IAM-008).
+        # OfferService cannot see U07 seller profiles, so the caller states the
+        # seller's tenant and the actor is checked against it.
+        authz.requires_role("seller").same_tenant(tenant_id if tenant_id is not None else authz.tenant_id)
         listing = Listing(
             listing_id=generate("listing"),
             seller_id=seller_id,
             product_id=product_id,
             title=title,
             taxonomy_node_id=taxonomy_node_id,
+            tenant_id=authz.tenant_id,
             content_overlays=dict(overlays or {}),
         )
         self.listings[listing.listing_id] = listing
+        U04.provenance(
+            authz, "create_listing", "listing", listing.listing_id,
+            reason=f"listing for product {product_id}", source="U04.OfferService",
+        )
         return listing
 
     def submit_listing(self, authz: AuthorizationContext, listing_id: str) -> Listing:
@@ -414,6 +424,39 @@ class OfferService:
         self.bundles[bundle.bundle_id] = bundle
         return bundle
 
+    def add_assortment(
+        self,
+        authz: AuthorizationContext,
+        seller_id: str,
+        name: str,
+        offer_ids: list[str],
+    ) -> Assortment:
+        """REQ-MER-001: a seller-defined grouping of that seller's own offers."""
+        authz.requires_role("seller")
+        if not offer_ids:
+            raise ValidationError("An assortment requires at least one offer")
+        seen: set[str] = set()
+        for offer_id in offer_ids:
+            if offer_id in seen:
+                raise ValidationError(f"Assortment lists offer {offer_id} twice")
+            seen.add(offer_id)
+            offer = self._require_offer(offer_id)
+            if offer.seller_id != seller_id:
+                raise InvariantViolationError(
+                    "GOV-05",
+                    "Assortment offers must belong to the same seller; "
+                    "cross-seller groupings require a governed campaign",
+                )
+        assortment = Assortment(
+            assortment_id=generate("offer"), seller_id=seller_id, name=name, offer_ids=list(offer_ids)
+        )
+        self.assortments[assortment.assortment_id] = assortment
+        U04.provenance(
+            authz, "add_assortment", "assortment", assortment.assortment_id,
+            reason=f"assortment of {len(offer_ids)} offers", source="U04.OfferService",
+        )
+        return assortment
+
     def _require_listing(self, listing_id: str) -> Listing:
         listing = self.listings.get(listing_id)
         if listing is None:
@@ -428,7 +471,7 @@ class OfferService:
 
 
 # Concept ownership declarations (GOV-02).
-U04.owns("listing", "Marketplace presentation of a product; references product identity", "U04.OfferService.create_listing", read_projections=["U11.search_index"])
+U04.owns("listing", "Marketplace presentation of a product; references product identity", "U04.OfferService.create_listing", read_projections=["U11.search_projection"])
 U04.owns("offer", "Seller proposal: condition, eligibility and fulfillment terms; distinct from product and evaluated price", "U04.OfferService.create_offer", read_projections=["U05.price_evaluation", "U08.cart"])
-U04.owns("assortment", "Seller-defined grouping of offers", "U04.OfferService.assortment")
+U04.owns("assortment", "Seller-defined grouping of offers", "U04.OfferService.add_assortment")
 U04.owns("bundle", "Composition of offers with explicit component attribution", "U04.OfferService.create_bundle")

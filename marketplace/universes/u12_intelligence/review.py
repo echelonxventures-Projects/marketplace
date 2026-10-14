@@ -487,5 +487,5 @@ U12.owns(
     "A governed request to change a model, policy, constraint or process, "
     "routed to the artifact's owner and never self-applied by review",
     "U12.ReviewService.propose_corrective_action",
-    read_projections=["U14.policy", "U12.models"],
+    read_projections=["U14.policy", "U12.model_registration"],
 )
